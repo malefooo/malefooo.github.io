@@ -33,40 +33,6 @@ author: 家中男孩
 
 ## 第三天
 
-```js
-
-
-
-```
-## 3，crontab文件的一些例子：
-
-> 1 简单打印
-
-```js
-```
-
-------
-
-> 2 nginx示例
-
-```js
-
-```
-
-##  4 创建cron脚本
-
-
-
-## 将脚本改为可执行（针对shell，.sh文件）
-
-> chmod +x filename
-
-
-引用：
-
-http://blog.csdn.net/u012402276/article/details/51063269
-https://www.cnblogs.com/longjshz/p/5779215.html
-http://blog.csdn.net/edgdvcyz/article/details/53348832
 
 
 
