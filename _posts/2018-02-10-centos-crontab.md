@@ -21,13 +21,13 @@ author: 家中男孩
 打开整个项目，搜索了一下lifecycle（生命周：接口），就从这个类开始看了
 查看了一下其实现类
 
-![]({{site.baseurl}}/assets/life_extends_1.png)
+![]({{site.baseurl}}/assets/life_extends_1.jpg)
 
-![]({{site.baseurl}}/assets/life_extends_2.png)
+![]({{site.baseurl}}/assets/life_extends_2.jpg)
 
-![]({{site.baseurl}}/assets/life_extends_3.png)
+![]({{site.baseurl}}/assets/life_extends_3.jpg)
 
-![]({{site.baseurl}}/assets/life_extends_4.png)
+![]({{site.baseurl}}/assets/life_extends_4.jpg)
 ## 第二天
 
 
