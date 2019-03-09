@@ -7,7 +7,7 @@
 
 # Site settings
 title: malefooo`s blog
-brief-intro: JAVA
+brief-intro: 不要想那么多,去做就对了
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://malefooo.github.io" # the base hostname & protocol for your site
 
@@ -53,7 +53,7 @@ category_dir: category/
 tag_dir: tag/
 
 # excerpt
-excerpt_separator: "\n\n\n\n"
+excerpt_separator: "<!-- more -->"
 
 # paginate
 plugins: [jekyll-paginate]
