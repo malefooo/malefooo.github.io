@@ -6,8 +6,8 @@
 # 'jekyll serve'. If you change this file, please restart the server process.
 
 # Site settings
-title: 家中男孩的学习天地
-brief-intro: JAVA And HouseBoy
+title: malefooo`s blog
+brief-intro: JAVA
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://malefooo.github.io" # the base hostname & protocol for your site
 
@@ -23,7 +23,7 @@ zhihu_username:
 linkedIn_username:
 dribbble_username:
 
-description_footer: 来自家中男孩的凝视！
+description_footer: malefooo`s blog
 
 # comments
 # two ways to comment, only choose one, and use your own short name
