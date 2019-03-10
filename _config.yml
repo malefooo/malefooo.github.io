@@ -28,9 +28,8 @@ description_footer: malefooo`s blog
 # comments
 # two ways to comment, only choose one, and use your own short name
 # 两种评论插件，选一个就好了，使用自己的 short_name
-duoshuo_shortname: #hygblog
-disqus_shortname: #gaohaoyang
-valine_comment: malefoooBlog
+#duoshuo_shortname: #hygblog
+#disqus_shortname: #gaohaoyang
 
 # statistic analysis 统计代码
 # 百度统计 id，将统计代码替换为自己的百度统计id，即
@@ -60,12 +59,3 @@ excerpt_separator: "<!-- more -->"
 plugins: [jekyll-paginate]
 paginate: 6
 port: 4001
-
-#valine
-
-# app_id
-  leancloud_appid: bAQ5UypiWuoB7dT4f8mBnRgI-gzGzoHsz
-# app_key
-  leancloud_appkey: RKJFYyEh1ad0iYHqoPBoXX9C
-# placeholde
-  placeholder: “Just go go"
