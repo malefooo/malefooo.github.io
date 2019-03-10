@@ -66,8 +66,21 @@ layout: default
 
         {% include previousAndNext.html %}
 
-        <h2 id="comments">Comments</h2>
-        {% include comments.html %}
+        <!--<h2 id="comments">Comments</h2>-->
+        <div id="gitmentContainer"></div>
+        <link rel="stylesheet" href="https://imsun.github.io/gitment/style/default.css">
+        <script src="https://imsun.github.io/gitment/dist/gitment.browser.js"></script>
+        <script>
+            var gitment = new Gitment({
+                owner: 'malefooo',
+                repo: 'malefooo.github.io',
+                oauth: {
+                    client_id: 'd3bc06d9e0a1e11f1255',
+                    client_secret: 'cac2231f618909a3f77caacf8547d696aa0ba7c3',
+                },
+            });
+            gitment.render('gitmentContainer')
+        </script>
 
 
     </div>
