@@ -22,7 +22,7 @@ ps.结果写的这个还是个畸形儿。。。。
 
 ![](http://i1.bvimg.com/679735/071d0714b34519df.png)
 
-这是整个结构
+这是整个结构。
 
 分为客户端client，连接器connector和容器container
 
