@@ -1,8 +1,8 @@
 ---
 layout: post
 title:  "SimpleSpringMVC手写一个简单的SpringMVC"
-categories: tomcat
-tags:  java tomcat connector
+categories: springmvc
+tags:  java springmvc
 author: malefo
 ---
 

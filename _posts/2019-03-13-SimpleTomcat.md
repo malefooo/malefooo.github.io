@@ -1,9 +1,9 @@
 ---
 layout: post
 title:  "SimpleTomcat手写一个简单的tomcat连接模块"
-categories: sprimgmvc
-tags:  java springmvc
-author: springmvc
+categories: tomcat
+tags:  java tomcat connector
+author: malefo
 ---
 
 * content
