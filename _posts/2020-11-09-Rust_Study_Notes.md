@@ -227,6 +227,58 @@ pub fn leading_zero_to_string(str:String,width:u32) -> String{
 
 > 2020.11.17
 
+# 学习记录
+
+* **数据库**
+
+今天的学习时间都花在了一块。
+先是选择tikv作为保存区块链的库，现在自己的云服务器上把tidb装了，然后在编译tikv的client包时，在编译grpcio出错
+第一次出错，cmake没装
+第二次出错，nasm没装
+第三次出错，nasm装成了32位
+第四次出错，就在win10上搞不过去，汇编代码出问题？
+
+我选择放弃了，赶紧去换下一个，去选择使用redis，也是在云服务器上搞了一个实例，然后在datagrip上搞了一个，发现是真的不好用，又换了redinav，配好了连上了
+
+
+* **序列化**
+
+序列化，反序列化，一对的，即把结构体变成[u8]
+我选择使用json的方式来序列化
+
+```rust
+#[derive(Debug,Deserialize,Serialize)]
+pub struct BlockChain {
+    pub blocks: Vec<Box<Block>>,
+}
+
+#[derive(Debug, Clone,Deserialize,Serialize)]
+pub struct Block {
+    pub timestamp: i64,
+    pub prev_block_hash: Vec<u8>,//还是不能用BigUint，考虑到序列化问题，这个结构没有实现Deserialize,Serialize
+    pub data: Vec<u8>,
+    pub hash: Vec<u8>,//大数
+    pub nonce: u64 //是一个随机值，找到这个随机值，就是循环了几次找到的hash
+}
+```
+
+在derive里边加了两个字段 Deserialize,Serialize
+在第一天的时候，hash和prev_block_hash我是用的BigUint的，但是这个结构没有实现序列化和反序列化，我只能又换回了Vec<u8>
+
+```rust
+
+    pub async fn serialize(&self) -> Vec<u8>{
+        let block_chain_str = serde_json::to_string(self).expect("block to string err.");
+        block_chain_str.into_bytes()
+    }
+
+```
+序列化代码
+
+# 学习难点
+
+无
+
 > 2020.11.18
 
 > 2020.11.19
