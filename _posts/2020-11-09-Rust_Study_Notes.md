@@ -117,6 +117,9 @@ rust的异步使用的是无栈协程，使用异步就是为了解决c10k的问
 
 # 学习记录
 
+>ps. 视频地址 https://www.bilibili.com/video/BV1NE41137zt
+>一共82集，大概每天5集这样来刷
+
 * **block ：区块**
 
 * * *
@@ -280,6 +283,244 @@ pub struct Block {
 无
 
 > 2020.11.18
+
+# 学习记录
+
+* **数据库**
+
+在设置完redis之后发现不好用，于是乎我不纠结了，不再去搞了，索性直接换mongodb
+毕竟之前做的项目改造有用到mongodb
+
+mongodb是类似sql数据库的，只不过把表结构改成了document
+设置两个字段在document里边，一个key，一个value，key=hash，value=[u8]
+
+关键点就是block需要价格方法，转换成doc格式
+
+```rust
+impl Block {
+
+    pub async fn serializer(&self) -> Vec<u8>{
+        let block_chain_str = serde_json::to_string(self).expect("block to string err.");
+        block_chain_str.into_bytes()
+    }
+
+    pub async fn to_doc(&self) -> bson::Document{
+        let mut doc = bson::Document::new();
+        let block_serialize = self.serializer().await;
+        let block_hash = BigUint::from_bytes_be(self.hash.as_slice()).to_str_radix(16);
+
+        // let b = bson::to_bson(block_serialize.as_slice()).expect("[u8] to bson err");
+        let mut b = bson::Binary{ subtype: spec::BinarySubtype::Generic, bytes:  block_serialize };
+        doc.insert("key",block_hash);
+        doc.insert("value",b);
+        doc
+    }
+}
+```
+
+之后就是存进mongo就好
+```json
+{
+    "_id": ObjectId("5fb4ecc300f640b900a25c94"),
+    "key": "8e650124c1e4ee1dc3f98232caacb79ed577d8f61cd0568e8ce9243923559a",
+    "value": BinData(0, "eyJ0aW1lc3RhbXAiOjE2MDU2OTI2MTEsInByZXZfYmxvY2tfaGFzaCI6WzBdLCJkYXRhIjpbNzEsMTAxLDExMCwxMDEsMTE1LDEwNSwxMTUsMzIsNjYsMTA4LDExMSw5OSwxMDddLCJoYXNoIjpbMCwxNDIsMTAxLDEsMzYsMTkzLDIyOCwyMzgsMjksMTk1LDI0OSwxMzAsNTAsMjAyLDE3MiwxODMsMTU4LDIxMywxMTksMjE2LDI0NiwyOCwyMDgsODYsMTQyLDE0MCwyMzMsMzYsNTcsMzUsODUsMTU0XSwibm9uY2UiOjUxfQ==")
+}
+
+// 2
+{
+    "_id": ObjectId("5fb4ecc300551f8900a25c95"),
+    "key": "3874114fbc6319b43a013611fda5a8821cc034d865615a03bd19d3eca72771",
+    "value": BinData(0, "eyJ0aW1lc3RhbXAiOjE2MDU2OTI2MTEsInByZXZfYmxvY2tfaGFzaCI6WzAsMTQyLDEwMSwxLDM2LDE5MywyMjgsMjM4LDI5LDE5NSwyNDksMTMwLDUwLDIwMiwxNzIsMTgzLDE1OCwyMTMsMTE5LDIxNiwyNDYsMjgsMjA4LDg2LDE0MiwxNDAsMjMzLDM2LDU3LDM1LDg1LDE1NF0sImRhdGEiOls4MywxMDEsMTEwLDEwMCwzMiw1MCw0OCw0OCwzNiwzMiw4NCwxMTEsMzIsNjUsMzIsNzAsMTE0LDExMSwxMDksMzIsNjZdLCJoYXNoIjpbMCw1NiwxMTYsMTcsNzksMTg4LDk5LDI1LDE4MCw1OCwxLDU0LDE3LDI1MywxNjUsMTY4LDEzMCwyOCwxOTIsNTIsMjE2LDEwMSw5Nyw5MCwzLDE4OSwyNSwyMTEsMjM2LDE2NywzOSwxMTNdLCJub25jZSI6OH0=")
+}
+
+// 3
+{
+    "_id": ObjectId("5fb4ecc3000debc400a25c96"),
+    "key": "cf22df6211439b8f6c4db79d9e69c7cf8b62f2d4627424237dc0b3cdef69fb",
+    "value": BinData(0, "eyJ0aW1lc3RhbXAiOjE2MDU2OTI2MTEsInByZXZfYmxvY2tfaGFzaCI6WzAsNTYsMTE2LDE3LDc5LDE4OCw5OSwyNSwxODAsNTgsMSw1NCwxNywyNTMsMTY1LDE2OCwxMzAsMjgsMTkyLDUyLDIxNiwxMDEsOTcsOTAsMywxODksMjUsMjExLDIzNiwxNjcsMzksMTEzXSwiZGF0YSI6WzgzLDEwMSwxMTAsMTAwLDMyLDU2LDQ4LDQ4LDM2LDMyLDg0LDExMSwzMiw2NSwzMiw3MCwxMTQsMTExLDEwOSwzMiw2N10sImhhc2giOlswLDIwNywzNCwyMjMsOTgsMTcsNjcsMTU1LDE0MywxMDgsNzcsMTgzLDE1NywxNTgsMTA1LDE5OSwyMDcsMTM5LDk4LDI0MiwyMTIsOTgsMTE2LDM2LDM1LDEyNSwxOTIsMTc5LDIwNSwyMzksMTA1LDI1MV0sIm5vbmNlIjo0MjN9")
+}
+
+// 4
+{
+    "_id": ObjectId("5fb4ecc30088ecf200a25c97"),
+    "key": "ce0527c545d1c91b2933f192a5e4b11420bf031ca3e1402e44383bc9c4d78a",
+    "value": BinData(0, "eyJ0aW1lc3RhbXAiOjE2MDU2OTI2MTEsInByZXZfYmxvY2tfaGFzaCI6WzAsMjA3LDM0LDIyMyw5OCwxNyw2NywxNTUsMTQzLDEwOCw3NywxODMsMTU3LDE1OCwxMDUsMTk5LDIwNywxMzksOTgsMjQyLDIxMiw5OCwxMTYsMzYsMzUsMTI1LDE5MiwxNzksMjA1LDIzOSwxMDUsMjUxXSwiZGF0YSI6WzgzLDEwMSwxMTAsMTAwLDMyLDUwLDU3LDQ4LDM2LDMyLDg0LDExMSwzMiw2NiwzMiw3MCwxMTQsMTExLDEwOSwzMiw2N10sImhhc2giOlswLDIwNiw1LDM5LDE5Nyw2OSwyMDksMjAxLDI3LDQxLDUxLDI0MSwxNDYsMTY1LDIyOCwxNzcsMjAsMzIsMTkxLDMsMjgsMTYzLDIyNSw2NCw0Niw2OCw1Niw1OSwyMDEsMTk2LDIxNSwxMzhdLCJub25jZSI6MTkzfQ==")
+}
+```
+
+这就是存进去的样式
+
+* **改造区块链的结构**
+
+在使用完了数据库之后，我要开始改造区块链的结构，之前的区块链里边村的是一个vec可变数组，现在只用存数据库中最后一个区块的hash
+
+>这里我有个问题，如果数据都是放在库里，而区块链不会删除数据，那数据不是会超级多？整个curd会很慢把。
+
+
+改造目标
+
+1. 新建区块链时，新生成创世区块，入库，同时把生成的hash给到blockchain中
+2. 添加新区块到链中，生成的区块入库，同时新的hash给到blockchain中
+3. 遍历区块链
+
+
+***1***
+
+* * *
+区块链的新结构
+
+```rust
+pub struct BlockChain {
+    // pub blocks: Vec<Box<Block>>,
+    pub tip:String,//最后一个区块的hash，即vec<u8> to hex string
+}
+```
+
+生成blockchain的方法
+```rust
+///创建区块链，带有创世区块
+pub async fn new_block_chain() -> Box<BlockChain> {
+    //创造创世区块
+    let block = new_genesis_block().await;
+
+    //获取mongodb，collection
+    let mongodb_client = super::MONGODB_INSTANCE.get().unwrap();
+    let db = mongodb_client.database(super::DATA_BASE);
+    let collection = db.collection(super::DATA_COLLECTION);
+
+    //插入创世区块
+    collection.insert_one(block.to_doc().await,InsertOneOptions::default());
+
+    //生成创世区块
+    let block_hash = BigUint::from_bytes_be(block.hash.as_slice()).to_str_radix(16);
+    
+    let block_chain = BlockChain{ tip: block_hash.to_string() };
+    Box::new(block_chain)
+}
+```
+
+
+***2***
+
+* * *
+
+新增区块到链中
+
+```rust
+    pub async fn add_block(mut self, data: String) -> Box<BlockChain> {
+        //获取mongodb collection
+        let mongodb_client = super::MONGODB_INSTANCE.get().unwrap();
+        let db = mongodb_client.database(super::DATA_BASE);
+        let collection = db.collection(super::DATA_COLLECTION);
+
+        //获取区块的bytes
+        let mut doc = bson::Document::new();
+        doc.insert("key",self.tip.clone());
+
+        //这里知识界解包了，会出错，找不到会有none
+        let find_doc:bson::Document = collection.find_one(doc,FindOneOptions::default()).unwrap().unwrap();
+
+        //解析，反序列化
+        let bs = find_doc.get("value").cloned().unwrap();
+        let binary = bson::from_bson::<bson::Binary>(bs).unwrap();
+        let prev_block = serde_json::from_slice::<Block>(binary.bytes.as_slice()).expect("Deserialize block err");
+
+        //生成新区快
+        let mut block = new_block(data,prev_block.hash).await;
+
+        //工作量证明
+        let pow = new_proof_of_work(*block).await;
+        block = pow.run().await;
+
+        //存新块到库中
+        collection.insert_one(block.to_doc().await,InsertOneOptions::default());
+        //计算新区快的hash [u8] to hex
+        let block_hash = BigUint::from_bytes_be(block.hash.as_slice()).to_str_radix(16);
+
+        //替换blockchain中的最后区块的hash
+        self.tip = block_hash;
+
+        //返回一个blockchain的指针
+        Box::new(self)
+    }
+```
+
+***3***
+
+* * *
+
+遍历
+
+```rust
+impl Iterator for BlockChain{
+    //饭会的类型是Block
+    //在这里使用的是内联？我记得是叫类型内联把，我也记不清了
+    //代替了泛型，内置一个返回的type，这个type具体什么类型，自己定义
+    //可能我学的还不深，内在的哲学我没get到
+    type Item = Block;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        
+        //连接mongodb
+        let mongodb_cli = super::MONGODB_INSTANCE.get().unwrap();
+        let db = mongodb_cli.database(super::DATA_BASE);
+        let collection = db.collection(super::DATA_COLLECTION);
+
+        //获取blockchain的hash来从库中找寻block
+        let hash = self.tip.as_str();
+        let op :Option<bson::Document> = collection.find_one(doc!["key":hash], FindOneOptions::default()).unwrap();
+
+        //找不到直接返回none，迭代结束
+        return match op {
+            None =>Option::None,
+            Some(find_doc)=>{
+                //解析bytes
+                let bs = find_doc.get("value").cloned().unwrap();
+                let binary = bson::from_bson::<bson::Binary>(bs).unwrap();
+                let block = serde_json::from_slice::<Block>(binary.bytes.as_slice()).expect("Deserialize block err");
+                Option::Some(block)
+            }
+        }
+
+    }
+
+}
+
+//这里是遍历的过程，写的很搓，后面再重构吧（当码农的乐趣不就是重构么[捂脸]）
+let mut iter = *block_chain.clone().into_iter();
+loop {
+	match iter.next(){
+		None => break,
+		Some(b) => {
+			println!("{}",b);
+			let mut blc = *block_chain.clone();
+			blc.tip = BigUint::from_bytes_be(b.prev_block_hash.as_slice()).to_str_radix(16);
+			iter = blc.into_iter();
+		}
+	}
+
+}
+```
+
+# 学习难点
+
+**难点1：**
+* * *
+在把vex<u8>装换成document的时候，发现没有方法，只能新建一个结构体，然后给字段赋值，有点扯
+
+在得到查询结果才是最坑的，能获取出来，但是是一个bson的枚举值
+bson的枚举中有Binary
+然后要把bson转成Binary需要这么写
+```rust
+let binary = bson::from_bson::<bson::Binary>(bs).unwrap();
+```
+感觉挺坑的
+
+**难点2：**
+* * *
+
+再写迭代器的时候，发现只会不停的循环获取最后一个区块然后不停的输出最后一个区块
+发现问题，1没有加个中断none，2第一次写的时候返回的是blockchain，然后里边的hash都没有改过
 
 > 2020.11.19
 
