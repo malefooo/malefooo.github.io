@@ -524,6 +524,137 @@ let binary = bson::from_bson::<bson::Binary>(bs).unwrap();
 
 > 2020.11.19
 
+# 学习记录
+
+* **CLI 命令行**
+
+加入了一个命令行，接受几个参数，然后实现一些功能
+1. createBlockChain 创建区块链，如果数据库不为空，则已经存在创世区块，只能添加新区快
+2. printBlockChain 遍历区块链，打印库里所有的区块
+3. addBlock 添加区块，添加到数据库
+
+```rust
+fn main() {
+    //接收参数
+    let args: Vec<String> = env::args().collect();
+    //这里用了一个全局单例，要不args无法传入到异步块中，应该是我太菜，找不到好的方法，就用了这个方法
+    ARGS_INSTANCE.set(args);
+    //初始化数据库
+    db::mongodb_con();
+
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+
+    runtime.spawn(async {
+        let args = ARGS_INSTANCE.get().unwrap();
+        
+        //cli命令行的功能
+        match args.len() {
+            //从1开始 是因为启动的那串字符也算参数
+            1 =>{ // 没有参数
+                let mut var = String::new();
+                if cfg!(target_os = "windows"){
+                    var = "block-chain-rust.exe".to_string();
+                } else if cfg!(target_os = "linux"){
+                    var = "./block-chain-rust".to_string();
+                }
+                println!("please input:");
+                println!("createBlockChain: {} createBlockChain",var);
+                println!("createBlockChain: {} printBlockChain",var);
+                println!("addBlock: {} addBlock \"data\"",var);
+            },
+            2 =>{ // 一个参数
+                match args[1].as_str() {
+                    "createBlockChain" => {
+                        match blc::block_chain::new_block_chain().await {
+                            None => {println!("the block chain is exist!")}
+                            Some(blc) => {println!("create block chain success")}
+                        }
+
+                    }
+                    "printBlockChain" => {
+                        BlockChain::print_block_chain().await;
+                    }
+                    &_ => {}
+                }
+            },
+            3 =>{ // 两个参数
+                match args[1].as_str() {
+                    "addBlock" => {
+                        let data = &args[2];
+
+                        match BlockChain::add_block(data.to_string()).await{
+                            None => println!("the database not exist"),
+                            Some(_) => println!("add block to chain true"),
+                            _ => {}
+                        }
+                    }
+                    &_ => {}
+                }
+            }
+            _ => {}
+        }
+
+    });
+
+}
+```
+
+在添加了cli的功能之后，其实blockChain的结构就显得有点多余，因为一个库就是一个链了
+把遍历功能进行了替换，之前是使用迭代器，现在使用for循环从库中取出的数据
+
+```rust
+	pub async fn print_block_chain(){
+        let mongodb_cli = super::MONGODB_INSTANCE.get().unwrap();
+        let db = mongodb_cli.database(super::DATA_BASE);
+        let collection = db.collection(super::DATA_COLLECTION);
+
+        let find_cursor = collection.find(None,FindOptions::default()).unwrap();
+        let mut vec_doc: Vec<mongodb::error::Result<bson::Document>> = find_cursor.collect();
+
+        if vec_doc.is_empty() {
+            println!("the database is empty");
+        } else {
+            // 遍历区块链
+            vec_doc.reverse();
+            for result in vec_doc {
+                let doc = result.unwrap();
+                let bs = doc.get("value").cloned().unwrap();
+                let binary = bson::from_bson::<bson::Binary>(bs).unwrap();
+                let block = serde_json::from_slice::<Block>(binary.bytes.as_slice()).expect("Deserialize block err");
+                println!("{}",block);
+            }
+        }
+    }
+```
+
+* **CI 自动构建**
+
+把代码放在gitlab，然后jenkins来从gitlab来获取然后构建
+这一套已经很熟悉了，之前自己搞项目的时候被这一套虐的不轻，不过虐过了就是经验
+这里就没啥操作量了
+
+
+# 学习难点
+
+**难点1(并且无解)：**
+* * *
+在做交叉编译的时候，从win10编成linux的时候，有这么个错误
+
+```
+  thread 'main' panicked at 'failed to execute ["musl-gcc" "-O0" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-fno-omit-frame-pointer" "-m64" "-I" "include" "-Wall" "-Wextra" "-pedantic" "-pedantic-errors" "-Wall" "-Wextra" "-Wcast-a
+lign" "-Wcast-qual" "-Wconversion" "-Wenum-compare" "-Wfloat-equal" "-Wformat=2" "-Winline" "-Winvalid-pch" "-Wmissing-field-initializers" "-Wmissing-include-dirs" "-Wredundant-decls" "-Wshadow" "-Wsign-compare" "-Wsign-conversion" "-Wundef"
+"-Wuninitialized" "-Wwrite-strings" "-fno-strict-aliasing" "-fvisibility=hidden" "-fstack-protector" "-g3" "-U_FORTIFY_SOURCE" "-DNDEBUG" "-c" "-oE:\\rustwork\\block-chain-rust\\target\\x86_64-unknown-linux-musl\\debug\\build\\ring-eee42196e1
+5cf3fc\\out\\aesni-x86_64-elf.o" "E:\\rust\\cargo\\registry\\src\\github.com-1ecc6299db9ec823\\ring-0.16.15\\pregenerated\\aesni-x86_64-elf.S"]: 系统找不到指定的文件。 (os error 2)', E:\rust\cargo\registry\src\github.com-1ecc6299db9ec823\ring
+-0.16.15\build.rs:661:9
+
+```
+我重装了cmake（智能的批处理工具），重装了nasm（汇编编译器），重下了mcsl-gcc（编译器）
+没用还是一样报这个错
+仔细一看是和ring相关的，这个ring是啥，我也没仔细去看，就点进去看了一下github的主页，毕竟我的任务还没完成呢
+我打开一个练习项目，很小，就只引用了一个async-std，然后交叉编译通过了。。。
+
+但不能就这样卡住啊，赶紧上服务器ci，解决了无法交叉编译的问题，也算搞定了。
+
 > 2020.11.20
 
 > 2020.11.23
