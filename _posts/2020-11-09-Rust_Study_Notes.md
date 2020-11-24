@@ -278,7 +278,7 @@ pub struct Block {
 ```
 序列化代码
 
-# 学习难点
+# 2020.11.17 学习难点
 
 无
 
@@ -655,20 +655,56 @@ lign" "-Wcast-qual" "-Wconversion" "-Wenum-compare" "-Wfloat-equal" "-Wformat=2"
 
 但不能就这样卡住啊，赶紧上服务器ci，解决了无法交叉编译的问题，也算搞定了。
 
-> 2020.11.20
-
-> 2020.11.23
-
 > 2020.11.24
 
-> 2020.11.25
+# 学习记录
 
-> 2020.11.26
+* **UTXO**
 
-> 2020.11.27
+是个大工程，先把需求给罗列出来，细化
 
-> 2020.11.28
+新加结构体
 
-> 2020.11.29
+1. 交易（transaction）包含多个输入（input）和多个输出（output）
+    1. 创建transaction，包含vin Vec<tx_input>和vout Vec<tx_output> 和 id string hex
+2. 输入对应之前交易的输出（创世区块只有输出）
+    1. 创建tx_input 包含id string hex（和transaction的id一样），index（下标，哪个id中的vout的下标），scrip_sig string（脚本？不太明白这个有什么用，后面学到在补全）
+    2. 创建tx_output，包含value int64（分），script_pub_key string （用户名）
+3. 未花费的交易输出（UTXO），方便统计余额
+    1. 包含一个tx_output（输出），id（transaction的id），index（transaction中v_out数组下标）
 
-> 2020.11.30
+重构结构体
+
+1. 区块（block）包含多笔交易（transaction）
+    1. data vec<64>改为transactions vec<transaction>
+
+
+新加方法
+
+1. 交易（transaction）
+    1. 创建创世交易（new_coin_base）-> transaction
+    2. 是否是创世交易（is_coin_base）-> bool
+    3. 创建交易（new_transaction）->transaction
+    4. 寻找对应的交易，即只有和发送人的密钥一致才能使用（find_transactions）->vec<transcation>
+    5. 寻找可用的交易，找出没被花费掉的，即可用（find_utxo）->vec<utxo>
+2. 命令行参数（cli）
+    1. 转账（send）
+    2. 查询余额（balance）
+
+重构方法
+
+1. 区块（block）
+    1. 添加新区块（new_block）
+    2. 区块显示 （display）
+    3. 添加创世区块（new_genesis_block）
+    4. 转成document（to_doc）
+2. 区块链（blockChain）
+    1. 添加新区块到链中（add_block）
+
+删除方法
+
+1. 命令行（cli）
+    1. 添加区块（addBlock）
+    
+    
+这几天过于躁动了。。。先暂停更新了
